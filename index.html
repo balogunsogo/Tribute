@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In Loving Memory – Mrs. Selinah Adunni Oduwole, JP</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital@0;1&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <a href="#home">Home</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#tributes">Tributes</a>
+        <a href="#leave-tribute">Leave a Tribute</a>
+    </nav>
+
+    <!-- ══════════ HERO ══════════ -->
+    <section id="home">
+        <div class="hero">
+            <div class="hero-bg"></div>
+            <div class="hero-content">
+                <div class="hero-frame">
+                    <div class="corner-tl"></div>
+                    <div class="corner-br"></div>
+                    <div class="hero-dates">July 14, 1938 – March 6, 2026</div>
+                    <div class="hero-divider"><span></span>✦<span></span></div>
+                    <h1 class="hero-name">Mrs. Selinah Adunni Oduwole</h1>
+                    <p class="hero-jp">Justice of the Peace · Beloved Mama</p>
+                    <p class="hero-bio">
+                        A woman of grace, wisdom, and unwavering love — her light continues to shine
+                        in all she touched, all she raised, and all she loved.
+                    </p>
+                </div>
+                <div class="hero-candle">🕯</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ══════════ GALLERY ══════════ -->
+    <section id="gallery">
+        <div class="section">
+            <div class="section-header">
+                <div class="section-label">Memories</div>
+                <h2 class="section-title">A Life in Pictures</h2>
+                <div class="section-rule"></div>
+                <p class="section-sub">Photos and videos shared in her memory</p>
+            </div>
+
+            <div class="gallery-grid" id="gallery-grid">
+                <!-- approved media loaded by JS -->
+                <button class="gallery-add-btn" id="add-photo-btn" onclick="openModal()">
+                    <span>+</span> Add a photo or video
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ══════════ TRIBUTES — DISPLAYED ══════════ -->
+    <section id="tributes">
+        <div class="section">
+            <div class="section-header">
+                <div class="section-label">Words of Love</div>
+                <h2 class="section-title">Tributes</h2>
+                <div class="section-rule"></div>
+                <p class="section-sub">Memories and messages left by those who loved her</p>
+            </div>
+
+            <!-- Tribute cards rendered by JS -->
+            <div class="tributes-list" id="tributes-list">
+                <div class="loading-tributes">Loading tributes…</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ══════════ LEAVE A TRIBUTE FORM ══════════ -->
+    <section id="leave-tribute">
+        <div class="section section--narrow">
+            <div class="section-header">
+                <div class="section-label">Remembrance</div>
+                <h2 class="section-title">Leave a Tribute</h2>
+                <div class="section-rule"></div>
+                <p class="section-sub">Share a memory or word of love — tributes are reviewed before being published</p>
+            </div>
+
+            <div class="tribute-form-wrap">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="t-name">Your Name</label>
+                        <input class="form-input" id="t-name" placeholder="e.g. Adebayo Oduwole" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="t-relation">Relationship</label>
+                        <select class="form-select" id="t-relation">
+                            <option value="">Select relationship</option>
+                            <option value="Son">Son</option>
+                            <option value="Daughter">Daughter</option>
+                            <option value="Grandchild">Grandchild</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Colleague">Colleague</option>
+                            <option value="Neighbour">Neighbour</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="t-message">Your Tribute</label>
+                    <textarea class="form-textarea" id="t-message"
+                        placeholder="Share a memory, a word of comfort, or a tribute…"></textarea>
+                </div>
+
+                <button class="tribute-submit" id="submit-btn" onclick="submitTribute()">Submit Tribute</button>
+
+                <div class="t-error" id="t-error"></div>
+                <div class="t-success" id="t-success"></div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>In Loving Memory of Mrs. Selinah Adunni Oduwole, JP &nbsp;·&nbsp; 1938 – 2026</p>
+        <p style="margin-top:0.5rem;opacity:0.55;">May her soul rest in perfect peace.</p>
+    </footer>
+
+    <!-- MUSIC BAR -->
+    <!-- <div class="music-bar">
+        <span class="music-label">Now Playing</span>
+        <button class="music-btn" id="music-play-btn">▶</button>
+        <span class="music-track" id="music-track-name">Hymn of Peace</span>
+        <div class="music-vol">
+            <span>♪</span>
+            <input type="range" min="0" max="1" step="0.05" value="0.5">
+        </div>
+    </div> -->
+
+    <div class="music-bar">
+        <span class="music-label">Music</span>
+        <button class="music-btn" id="play-btn" onclick="toggleMusic()" title="Play / Pause">▶</button>
+        <span class="music-track">Amazing Grace – Hymn</span>
+        <div class="music-vol">
+            <span>♪</span>
+            <input type="range" min="0" max="1" step="0.05" value="0.4" oninput="setVol(this.value)" title="Volume">
+        </div>
+    
+        <audio id="bg-music" loop>
+            <source src="https://cdn.pixabay.com/audio/2022/08/04/audio_2dde668d05.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- ══════════ UPLOAD MODAL ══════════ -->
+    <div id="modal" class="modal-backdrop" onclick="closeModalOutside(event)">
+        <div class="modal">
+            <h3 class="modal-title">Add to the Gallery</h3>
+            <p class="modal-sub">Share a photo or video in her memory</p>
+
+            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <div class="drop-zone-icon">📷</div>
+                <div class="drop-zone-text">Click or drag files here</div>
+                <div class="drop-zone-sub">Photos &amp; videos · Multiple allowed</div>
+            </div>
+
+            <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="onFilesSelected(event)">
+
+            <div class="file-preview-list" id="file-preview-list"></div>
+
+            <div class="form-group" style="margin-top:1rem;">
+                <label class="form-label" for="modal-caption">Caption <span
+                        style="opacity:0.45;font-style:italic;text-transform:none;letter-spacing:0">(optional)</span></label>
+                <input class="form-input" id="modal-caption" placeholder="e.g. Christmas 1985, Lagos">
+            </div>
+
+            <div class="modal-btns" style="margin-top:1.4rem;">
+                <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn" id="modal-upload-btn" onclick="uploadFiles()">Upload</button>
+            </div>
+
+            <div class="modal-status" id="modal-status"></div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="app.js"></script>
+
+</body>
+
+</html>

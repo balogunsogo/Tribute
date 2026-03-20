@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firebase Test</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      background: #111;
+      color: #eee;
+    }
+    pre {
+      background: #1b1b1b;
+      padding: 16px;
+      border: 1px solid #333;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    button {
+      padding: 10px 14px;
+      margin-right: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Firebase Test</h1>
+  <button id="test-all">Test collections</button>
+  <button id="test-one">Test known image doc</button>
+  <pre id="out">Ready...</pre>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-lite.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDhB0oSGJFZnqF90ocp-WiSP1mm323b7z8",
+  authDomain: "mama-memorial-c042f.firebaseapp.com",
+  projectId: "mama-memorial-c042f",
+  storageBucket: "mama-memorial-c042f.firebasestorage.app",
+  messagingSenderId: "797464580205",
+  appId: "1:797464580205:web:22f3b497f75c40ce496f64",
+};
+
+const app = initializeApp(firebaseConfig);
+
+/* try one of these */
+const db = getFirestore(app, "default");
+// const db = getFirestore(app, "(default)");
+
+    const out = document.getElementById("out");
+
+    function write(value) {
+      out.textContent =
+        typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      console.log(value);
+    }
+
+    document.getElementById("test-all").addEventListener("click", async () => {
+      try {
+        const tributesSnap = await getDocs(collection(db, "tributes"));
+        const imagesSnap = await getDocs(collection(db, "images"));
+
+        write({
+          projectId: firebaseConfig.projectId,
+          tributesCount: tributesSnap.size,
+          imagesCount: imagesSnap.size,
+          tributes: tributesSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+          images: imagesSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+        });
+      } catch (err) {
+        write({
+          error: err.message,
+          code: err.code || null,
+          full: String(err)
+        });
+      }
+    });
+
+    document.getElementById("test-one").addEventListener("click", async () => {
+      try {
+        const knownId = "bDGkBRW9no0HG0ZpRdjh";
+        const snap = await getDoc(doc(db, "images", knownId));
+
+        write({
+          projectId: firebaseConfig.projectId,
+          exists: snap.exists(),
+          data: snap.exists() ? snap.data() : null
+        });
+      } catch (err) {
+        write({
+          error: err.message,
+          code: err.code || null,
+          full: String(err)
+        });
+      }
+    });
+  </script>
+</body>
+</html>
