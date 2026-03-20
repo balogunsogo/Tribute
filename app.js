@@ -448,8 +448,10 @@ function initDropZone() {
    INIT
 ════════════════════════════════════════ */
 
+
 window.addEventListener("DOMContentLoaded", async () => {
   initDropZone();
+  initMusic();
   await Promise.all([loadTributes(), loadImages()]);
 });
 
