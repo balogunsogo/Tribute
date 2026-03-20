@@ -38,6 +38,10 @@ const GALLERY_ITEMS_PER_PAGE = 8;
 let lightboxItems = [];
 let currentLightboxIndex = 0;
 
+let tributeItems = [];
+let currentTributePage = 1;
+const TRIBUTES_PER_PAGE = 6;
+
 let touchStartX = 0;
 let touchEndX = 0;
 const SWIPE_THRESHOLD = 50;
@@ -89,55 +93,114 @@ function safeDateString(value) {
 
 async function loadTributes() {
   const list = document.getElementById("tributes-list");
+  const pagination = document.getElementById("tributes-pagination");
   if (!list) return;
 
   list.innerHTML = '<div class="loading-tributes">Loading tributes…</div>';
+  if (pagination) pagination.innerHTML = "";
 
   try {
     const q = query(tributesRef, where("approved", "==", true));
     const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-      list.innerHTML =
-        '<div class="empty-tributes">No tributes have been approved yet.</div>';
-      return;
-    }
-
-    const docs = snapshot.docs.map((doc) => ({
+    tributeItems = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
-    docs.sort((a, b) => {
+    tributeItems.sort((a, b) => {
       const aTime = a.approvedAt || a.createdAt || "";
       const bTime = b.approvedAt || b.createdAt || "";
       return bTime.localeCompare(aTime);
     });
 
-    list.innerHTML = "";
+    if (!tributeItems.length) {
+      list.innerHTML =
+        '<div class="empty-tributes">No tributes have been approved yet.</div>';
+      return;
+    }
 
-    docs.forEach((t) => {
-      const date = safeDateString(t.approvedAt || t.createdAt);
-
-      const el = document.createElement("div");
-      el.className = "tribute-card";
-      el.innerHTML = `
-        <div class="tribute-meta">
-          <div>
-            <div class="tribute-name">${escapeHtml(t.name)}</div>
-            <div class="tribute-relation">${escapeHtml(t.relation)}</div>
-          </div>
-          ${date ? `<div class="tribute-date">${date}</div>` : ""}
-        </div>
-        <div class="tribute-text">${escapeHtml(t.message)}</div>
-      `;
-      list.appendChild(el);
-    });
+    currentTributePage = 1;
+    renderTributePage();
+    renderTributePagination();
   } catch (err) {
     console.error("loadTributes error:", err);
     list.innerHTML =
       '<div class="empty-tributes">Could not load tributes. Please refresh the page.</div>';
   }
+}
+
+function renderTributePage() {
+  const list = document.getElementById("tributes-list");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  const start = (currentTributePage - 1) * TRIBUTES_PER_PAGE;
+  const end = start + TRIBUTES_PER_PAGE;
+  const pageItems = tributeItems.slice(start, end);
+
+  pageItems.forEach((t) => {
+    const date = safeDateString(t.approvedAt || t.createdAt);
+
+    const el = document.createElement("div");
+    el.className = "tribute-card";
+    el.innerHTML = `
+      <div class="tribute-meta">
+        <div>
+          <div class="tribute-name">${escapeHtml(t.name)}</div>
+          <div class="tribute-relation">${escapeHtml(t.relation)}</div>
+        </div>
+        ${date ? `<div class="tribute-date">${date}</div>` : ""}
+      </div>
+      <div class="tribute-text">${escapeHtml(t.message)}</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+function renderTributePagination() {
+  const wrap = document.getElementById("tributes-pagination");
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+
+  const totalPages = Math.ceil(tributeItems.length / TRIBUTES_PER_PAGE);
+  if (totalPages <= 1) return;
+
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "gallery-page-btn";
+  prevBtn.textContent = "Prev";
+  prevBtn.disabled = currentTributePage === 1;
+  prevBtn.onclick = () => {
+    currentTributePage--;
+    renderTributePage();
+    renderTributePagination();
+  };
+  wrap.appendChild(prevBtn);
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.className = "gallery-page-btn" + (i === currentTributePage ? " active" : "");
+    btn.textContent = i;
+    btn.onclick = () => {
+      currentTributePage = i;
+      renderTributePage();
+      renderTributePagination();
+    };
+    wrap.appendChild(btn);
+  }
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "gallery-page-btn";
+  nextBtn.textContent = "Next";
+  nextBtn.disabled = currentTributePage === totalPages;
+  nextBtn.onclick = () => {
+    currentTributePage++;
+    renderTributePage();
+    renderTributePagination();
+  };
+  wrap.appendChild(nextBtn);
 }
 
 /* ════════════════════════════════════════
