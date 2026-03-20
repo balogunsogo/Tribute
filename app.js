@@ -31,6 +31,17 @@ const storage = getStorage(app);
 const tributesRef = collection(db, "tributes");
 const imagesRef = collection(db, "images");
 
+let galleryItems = [];
+let currentGalleryPage = 1;
+const GALLERY_ITEMS_PER_PAGE = 8;
+
+let lightboxItems = [];
+let currentLightboxIndex = 0;
+
+let touchStartX = 0;
+let touchEndX = 0;
+const SWIPE_THRESHOLD = 50;
+
 /* ════════════════════════════════════════
    TOAST
 ════════════════════════════════════════ */
@@ -197,62 +208,109 @@ window.submitTribute = async function () {
 ════════════════════════════════════════ */
 
 async function loadImages() {
+  try {
+    const q = query(imagesRef, where("approved", "==", true));
+    const snapshot = await getDocs(q);
+
+    galleryItems = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    galleryItems = galleryItems.filter((img) => !!img.url);
+
+    galleryItems.sort((a, b) => {
+      const aTime = a.approvedAt || a.createdAt || "";
+      const bTime = b.approvedAt || b.createdAt || "";
+      return aTime.localeCompare(bTime);
+    });
+
+    currentGalleryPage = 1;
+    renderGalleryPage();
+    renderGalleryPagination();
+  } catch (err) {
+    console.error("loadImages error:", err);
+  }
+}
+
+function renderGalleryPage() {
   const grid = document.getElementById("gallery-grid");
   const btn = document.getElementById("add-photo-btn");
   if (!grid || !btn) return;
 
   grid.querySelectorAll(".gallery-item").forEach((el) => el.remove());
 
-  try {
-    const q = query(imagesRef, where("approved", "==", true));
-    const snapshot = await getDocs(q);
+  if (!galleryItems.length) return;
 
-    if (snapshot.empty) return;
+  const start = (currentGalleryPage - 1) * GALLERY_ITEMS_PER_PAGE;
+  const end = start + GALLERY_ITEMS_PER_PAGE;
+  const pageItems = galleryItems.slice(start, end);
 
-    const docs = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+  pageItems.forEach((img) => {
+    const el = document.createElement("div");
+    el.className = "gallery-item";
 
-    docs.sort((a, b) => {
-      const aTime = a.approvedAt || a.createdAt || "";
-      const bTime = b.approvedAt || b.createdAt || "";
-      return aTime.localeCompare(bTime);
-    });
+    const isVideo =
+      img.type === "video" || /\.(mp4|webm|mov|ogg)$/i.test(img.url);
 
-    docs.forEach((img) => {
-      if (!img.url) return;
+    el.innerHTML = isVideo
+      ? `
+        <video class="gallery-img" src="${img.url}" muted playsinline preload="metadata"></video>
+        ${img.caption ? `<div class="gallery-img-caption">${escapeHtml(img.caption)}</div>` : ""}
+      `
+      : `
+        <img class="gallery-img" src="${img.url}" alt="${escapeHtml(img.caption || "A memory")}" loading="lazy">
+        ${img.caption ? `<div class="gallery-img-caption">${escapeHtml(img.caption)}</div>` : ""}
+      `;
 
-      const el = document.createElement("div");
-      el.className = "gallery-item";
+    el.addEventListener("click", () => openLightboxById(img.id));
 
-      const isVideo =
-        img.type === "video" || /\.(mp4|webm|mov|ogg)$/i.test(img.url);
+    grid.insertBefore(el, btn);
+  });
+}
 
-      if (isVideo) {
-        el.innerHTML = `
-          <video class="gallery-img" src="${img.url}" muted playsinline loop preload="metadata"></video>
-          ${img.caption ? `<div class="gallery-img-caption">${escapeHtml(img.caption)}</div>` : ""}
-        `;
+function renderGalleryPagination() {
+  const wrap = document.getElementById("gallery-pagination");
+  if (!wrap) return;
 
-        const vid = el.querySelector("video");
-        el.addEventListener("mouseenter", () => vid.play());
-        el.addEventListener("mouseleave", () => {
-          vid.pause();
-          vid.currentTime = 0;
-        });
-      } else {
-        el.innerHTML = `
-          <img class="gallery-img" src="${img.url}" alt="${escapeHtml(img.caption || "A memory")}" loading="lazy">
-          ${img.caption ? `<div class="gallery-img-caption">${escapeHtml(img.caption)}</div>` : ""}
-        `;
-      }
+  wrap.innerHTML = "";
 
-      grid.insertBefore(el, btn);
-    });
-  } catch (err) {
-    console.error("loadImages error:", err);
+  const totalPages = Math.ceil(galleryItems.length / GALLERY_ITEMS_PER_PAGE);
+  if (totalPages <= 1) return;
+
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "gallery-page-btn";
+  prevBtn.textContent = "Prev";
+  prevBtn.disabled = currentGalleryPage === 1;
+  prevBtn.onclick = () => {
+    currentGalleryPage--;
+    renderGalleryPage();
+    renderGalleryPagination();
+  };
+  wrap.appendChild(prevBtn);
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.className = "gallery-page-btn" + (i === currentGalleryPage ? " active" : "");
+    btn.textContent = i;
+    btn.onclick = () => {
+      currentGalleryPage = i;
+      renderGalleryPage();
+      renderGalleryPagination();
+    };
+    wrap.appendChild(btn);
   }
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "gallery-page-btn";
+  nextBtn.textContent = "Next";
+  nextBtn.disabled = currentGalleryPage === totalPages;
+  nextBtn.onclick = () => {
+    currentGalleryPage++;
+    renderGalleryPage();
+    renderGalleryPagination();
+  };
+  wrap.appendChild(nextBtn);
 }
 
 /* ════════════════════════════════════════
@@ -452,6 +510,7 @@ function initDropZone() {
 window.addEventListener("DOMContentLoaded", async () => {
   initDropZone();
   initMusic();
+  initLightboxSwipe();
   await Promise.all([loadTributes(), loadImages()]);
 });
 
@@ -516,3 +575,107 @@ window.setVol = function (value) {
   if (!audio) return;
   audio.volume = parseFloat(value);
 };
+
+function openLightboxById(id) {
+  lightboxItems = galleryItems;
+  currentLightboxIndex = lightboxItems.findIndex((item) => item.id === id);
+
+  if (currentLightboxIndex < 0) return;
+
+  renderLightboxItem();
+  document.getElementById("lightbox")?.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function renderLightboxItem() {
+  const mediaWrap = document.getElementById("lightbox-media-wrap");
+  const captionEl = document.getElementById("lightbox-caption");
+  const counterEl = document.getElementById("lightbox-counter");
+
+  if (!mediaWrap || !captionEl || !counterEl) return;
+
+  const item = lightboxItems[currentLightboxIndex];
+  if (!item) return;
+
+  const isVideo =
+    item.type === "video" || /\.(mp4|webm|mov|ogg)$/i.test(item.url || "");
+
+  mediaWrap.innerHTML = isVideo
+    ? `<video src="${item.url}" controls autoplay playsinline style="width:100%;max-height:75vh;"></video>`
+    : `<img src="${item.url}" alt="${escapeHtml(item.caption || "Memory")}">`;
+
+  counterEl.textContent = `${currentLightboxIndex + 1} of ${lightboxItems.length}`;
+  captionEl.textContent = item.caption || "";
+}
+
+
+window.closeLightbox = function () {
+  const lightbox = document.getElementById("lightbox");
+  const mediaWrap = document.getElementById("lightbox-media-wrap");
+
+  if (mediaWrap) {
+    const video = mediaWrap.querySelector("video");
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }
+
+  lightbox?.classList.remove("open");
+  document.body.style.overflow = "";
+};
+
+window.closeLightboxOutside = function (e) {
+  if (e.target.id === "lightbox") {
+    closeLightbox();
+  }
+};
+
+window.showPrevLightboxItem = function () {
+  if (!lightboxItems.length) return;
+  currentLightboxIndex =
+    (currentLightboxIndex - 1 + lightboxItems.length) % lightboxItems.length;
+  renderLightboxItem();
+};
+
+window.showNextLightboxItem = function () {
+  if (!lightboxItems.length) return;
+  currentLightboxIndex =
+    (currentLightboxIndex + 1) % lightboxItems.length;
+  renderLightboxItem();
+};
+
+document.addEventListener("keydown", (e) => {
+  const lightboxOpen = document.getElementById("lightbox")?.classList.contains("open");
+  if (!lightboxOpen) return;
+
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") showPrevLightboxItem();
+  if (e.key === "ArrowRight") showNextLightboxItem();
+});
+
+function handleLightboxSwipe() {
+  const deltaX = touchEndX - touchStartX;
+
+  if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
+
+  if (deltaX < 0) {
+    showNextLightboxItem();
+  } else {
+    showPrevLightboxItem();
+  }
+}
+
+function initLightboxSwipe() {
+  const mediaWrap = document.getElementById("lightbox-media-wrap");
+  if (!mediaWrap) return;
+
+  mediaWrap.addEventListener("touchstart", (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+  }, { passive: true });
+
+  mediaWrap.addEventListener("touchend", (e) => {
+    touchEndX = e.changedTouches[0].clientX;
+    handleLightboxSwipe();
+  }, { passive: true });
+}

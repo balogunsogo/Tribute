@@ -63,6 +63,8 @@
                     <span>+</span> Add a photo or video
                 </button>
             </div>
+
+            <div class="gallery-pagination" id="gallery-pagination"></div>
         </div>
     </section>
 
@@ -164,6 +166,22 @@
         <audio id="bg-music" loop>
             <source src="https://play.hymnswithoutwords.com/wp-content/uploads/2023/06/Amazing-Grace-Organ-5-Verses-2023.mp3" type="audio/mpeg">
         </audio>
+    </div>
+
+
+    <!-- ══════════ GALLERY LIGHTBOX ══════════ -->
+    <div id="lightbox" class="lightbox-backdrop" onclick="closeLightboxOutside(event)">
+        <div class="lightbox">
+            <button class="lightbox-close" onclick="closeLightbox()" title="Close">×</button>
+            <button class="lightbox-nav lightbox-prev" onclick="showPrevLightboxItem()" title="Previous">‹</button>
+            <button class="lightbox-nav lightbox-next" onclick="showNextLightboxItem()" title="Next">›</button>
+
+            <div class="lightbox-media-wrap" id="lightbox-media-wrap"></div>
+            <div class="lightbox-meta">
+                <div class="lightbox-counter" id="lightbox-counter"></div>
+                <div class="lightbox-caption" id="lightbox-caption"></div>
+            </div>
+        </div>
     </div>
 
 
