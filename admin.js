@@ -29,6 +29,64 @@ const storage = getStorage(app);
 const tributesRef = collection(db, "tributes");
 const imagesRef = collection(db, "images");
 
+const ADMIN_PASSWORD = "MamaAdmin2026";
+const ADMIN_SESSION_KEY = "memorial_admin_unlocked";
+
+function isAdminUnlocked() {
+  return sessionStorage.getItem(ADMIN_SESSION_KEY) === "true";
+}
+
+function showAdminApp() {
+  const loginScreen = document.getElementById("admin-login-screen");
+  const adminApp = document.getElementById("admin-app");
+
+  if (loginScreen) loginScreen.style.display = "none";
+  if (adminApp) adminApp.style.display = "block";
+}
+
+function showLoginScreen() {
+  const loginScreen = document.getElementById("admin-login-screen");
+  const adminApp = document.getElementById("admin-app");
+
+  if (loginScreen) loginScreen.style.display = "flex";
+  if (adminApp) adminApp.style.display = "none";
+}
+
+function initAdminPasswordGate() {
+  const input = document.getElementById("admin-password-input");
+  const button = document.getElementById("admin-login-btn");
+  const error = document.getElementById("admin-login-error");
+
+  if (isAdminUnlocked()) {
+    showAdminApp();
+    loadAdmin();
+    return;
+  }
+
+  showLoginScreen();
+
+  async function tryUnlock() {
+    const value = input?.value || "";
+
+    if (value === ADMIN_PASSWORD) {
+      sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+      if (error) error.textContent = "";
+      showAdminApp();
+      await loadAdmin();
+    } else {
+      if (error) error.textContent = "Incorrect password.";
+    }
+  }
+
+  button?.addEventListener("click", tryUnlock);
+
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      tryUnlock();
+    }
+  });
+}
+
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
@@ -73,7 +131,9 @@ function renderTributes(containerId, items, isPending) {
     return;
   }
 
-  container.innerHTML = items.map((item) => `
+  container.innerHTML = items
+    .map(
+      (item) => `
     <div class="card">
       <div class="meta">
         <strong>${escapeHtml(item.name || "Unknown")}</strong><br>
@@ -90,7 +150,9 @@ function renderTributes(containerId, items, isPending) {
         <button class="danger" onclick="deleteTributeItem('${item.id}')">Delete</button>
       </div>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function renderMedia(containerId, items, isPending) {
@@ -102,11 +164,12 @@ function renderMedia(containerId, items, isPending) {
     return;
   }
 
-  container.innerHTML = items.map((item) => {
-    const isVideo =
-      item.type === "video" || /\.(mp4|webm|mov|ogg)$/i.test(item.url || "");
+  container.innerHTML = items
+    .map((item) => {
+      const isVideo =
+        item.type === "video" || /\.(mp4|webm|mov|ogg)$/i.test(item.url || "");
 
-    return `
+      return `
       <div class="card">
         <div class="pill">${isVideo ? "Video" : "Image"}</div>
         ${
@@ -128,7 +191,8 @@ function renderMedia(containerId, items, isPending) {
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 async function fetchAll(colRef) {
@@ -152,12 +216,21 @@ async function loadAdmin() {
     const approvedMedia = allMedia.filter((x) => x.approved === true);
 
     renderTributes("pending-tributes", sortNewestFirst(pendingTributes), true);
-    renderTributes("approved-tributes", sortNewestFirst(approvedTributes), false);
+    renderTributes(
+      "approved-tributes",
+      sortNewestFirst(approvedTributes),
+      false,
+    );
     renderMedia("pending-media", sortNewestFirst(pendingMedia), true);
     renderMedia("approved-media", sortNewestFirst(approvedMedia), false);
   } catch (err) {
     console.error("Admin load error:", err);
-    ["pending-tributes", "approved-tributes", "pending-media", "approved-media"].forEach((id) => {
+    [
+      "pending-tributes",
+      "approved-tributes",
+      "pending-media",
+      "approved-media",
+    ].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = `<div class="muted">Could not load data.</div>`;
     });
@@ -242,4 +315,9 @@ window.deleteMediaItem = async function (id, encodedUrl) {
   }
 };
 
-window.addEventListener("DOMContentLoaded", loadAdmin);
+window.addEventListener("DOMContentLoaded", initAdminPasswordGate);
+
+window.logoutAdmin = function () {
+  sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  location.reload();
+};

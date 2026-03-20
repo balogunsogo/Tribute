@@ -167,41 +167,118 @@
         .refresh-btn {
             min-width: 120px;
         }
+
+        .admin-login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .admin-login-card {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(20, 14, 4, 0.65);
+            border: 0.5px solid var(--border-strong);
+            padding: 2rem;
+        }
+
+        .admin-login-title {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold-pale);
+            font-size: 1.8rem;
+            margin-bottom: .4rem;
+        }
+
+        .admin-login-sub {
+            color: var(--sepia);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            margin-bottom: 1.2rem;
+        }
+
+        .admin-login-input {
+            width: 100%;
+            background: rgba(8, 5, 1, 0.75);
+            border: 0.5px solid var(--border-strong);
+            color: var(--cream);
+            padding: .8rem 1rem;
+            font-family: 'EB Garamond', serif;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 1rem;
+        }
+
+        .admin-login-input:focus {
+            border-color: var(--gold);
+        }
+
+        .admin-login-btn {
+            width: 100%;
+        }
+
+        .admin-login-error {
+            color: #e4a4a4;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            margin-top: .8rem;
+            min-height: 1.2rem;
+        }
     </style>
 </head>
 
-<body>
-    <div class="wrap">
-        <div class="topbar">
-            <div>
-                <div class="title">Memorial Admin</div>
-                <div class="sub">Approve or remove tributes and gallery uploads</div>
-            </div>
-            <button class="refresh-btn" onclick="refreshAdmin()">Refresh</button>
-        </div>
+<div id="admin-login-screen" class="admin-login-screen">
+    <div class="admin-login-card">
+        <h1 class="admin-login-title">Admin Access</h1>
+        <p class="admin-login-sub">Enter password to continue</p>
 
-        <div class="section">
-            <h2>Pending Tributes</h2>
-            <div id="pending-tributes" class="grid"></div>
-        </div>
+        <input id="admin-password-input" class="admin-login-input" type="password" placeholder="Enter admin password"
+            autocomplete="off" />
 
-        <div class="section">
-            <h2>Pending Media</h2>
-            <div id="pending-media" class="grid"></div>
-        </div>
-
-        <div class="section">
-            <h2>Approved Tributes</h2>
-            <div id="approved-tributes" class="grid"></div>
-        </div>
-
-        <div class="section">
-            <h2>Approved Media</h2>
-            <div id="approved-media" class="grid"></div>
-        </div>
+        <button id="admin-login-btn" class="admin-login-btn">Unlock Admin</button>
+        <div id="admin-login-error" class="admin-login-error"></div>
     </div>
+</div>
 
-    <script type="module" src="admin.js"></script>
-</body>
+
+<div id="admin-app" style="display:none;">
+
+    <body>
+        <div class="wrap">
+            <div class="topbar">
+                <div>
+                    <div class="title">Memorial Admin</div>
+                    <div class="sub">Approve or remove tributes and gallery uploads</div>
+                </div>
+
+                <button class="refresh-btn" onclick="logoutAdmin()">Logout</button>
+                <button class="refresh-btn" onclick="refreshAdmin()">Refresh</button>
+            </div>
+
+            <div class="section">
+                <h2>Pending Tributes</h2>
+                <div id="pending-tributes" class="grid"></div>
+            </div>
+
+            <div class="section">
+                <h2>Pending Media</h2>
+                <div id="pending-media" class="grid"></div>
+            </div>
+
+            <div class="section">
+                <h2>Approved Tributes</h2>
+                <div id="approved-tributes" class="grid"></div>
+            </div>
+
+            <div class="section">
+                <h2>Approved Media</h2>
+                <div id="approved-media" class="grid"></div>
+            </div>
+        </div>
+
+        <script type="module" src="admin.js"></script>
+    </body>
+</div>
 
 </html>
